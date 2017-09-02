@@ -38,6 +38,7 @@ public class FlappyBird extends ApplicationAdapter {
 	private float posicaoIncialVertical;
 	private Texture canoBaixo;
 	private Texture gameOver;
+	private Texture playButton;
 	private Texture canoTopo;
 	private float posicaoMovimentoCanoHorizonatal;
 	private float espacoCanos;
@@ -64,6 +65,7 @@ public class FlappyBird extends ApplicationAdapter {
 		passaros[2] = new Texture("passaro3.png");
 		fundo = new Texture("fundo.png");
 		gameOver = new Texture("game_over.png");
+		playButton = new Texture("play.png");
 
 		font = new BitmapFont();
 		font.setColor(Color.WHITE);
@@ -151,7 +153,6 @@ public class FlappyBird extends ApplicationAdapter {
 					posicaoMovimentoCanoHorizonatal = larguraDoDispositivo;
 				}
 
-
 			}
 		}
 
@@ -167,8 +168,8 @@ public class FlappyBird extends ApplicationAdapter {
 		font.draw(batch,String.valueOf(pontuacao),larguraDoDispositivo/2,alturaDoDispositivo -50);
 
 		if(estadoDoJogo==2){
-			batch.draw(gameOver,larguraDoDispositivo/2 - gameOver.getWidth()/2,alturaDoDispositivo/2);
-			mensagem.draw(batch,"Toque para Reiniciar",larguraDoDispositivo/4,alturaDoDispositivo/2 - gameOver.getHeight()/2);
+			batch.draw(gameOver,larguraDoDispositivo/4 - gameOver.getWidth()/7 ,alturaDoDispositivo/4);
+			batch.draw(playButton,larguraDoDispositivo/7,alturaDoDispositivo/4 - playButton.getHeight()/6);
 		}
 
 
