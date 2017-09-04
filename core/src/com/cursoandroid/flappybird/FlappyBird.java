@@ -2,6 +2,7 @@ package com.cursoandroid.flappybird;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -24,8 +25,11 @@ public class FlappyBird extends ApplicationAdapter {
 	private Texture fundo;
 	private int estadoDoJogo = 0;
 	private BitmapFont font;
-	private BitmapFont mensagem;
+	private BitmapFont fontScore;
+	private BitmapFont fontBestScore;
 	private int pontuacao;
+	private int score;
+	private int melhorPontuacao;
 	private boolean marcouPonto = false;
 	private Circle passaroCirculo;
 	private Rectangle retangoloCanoTopo;
@@ -40,13 +44,16 @@ public class FlappyBird extends ApplicationAdapter {
 	private Texture gameOver;
 	private Texture playButton;
 	private Texture canoTopo;
+	private Texture chao;
+	private Texture chao2;
 	private float posicaoMovimentoCanoHorizonatal;
+	private float posicaoMovimentoChao;
 	private float espacoCanos;
 	private float deltaTime;
 	private Random random;
 	private float alturaEntreCanosRandomica;
 	private float variacao=0;
-
+	private static final int AQUIVO_PREFERENCIA = 0;
 	//camera
 	private OrthographicCamera camera;
 	private Viewport viewport;
@@ -66,14 +73,20 @@ public class FlappyBird extends ApplicationAdapter {
 		fundo = new Texture("fundo.png");
 		gameOver = new Texture("game_over.png");
 		playButton = new Texture("play.png");
+		chao = new Texture("chao.png");
+		chao2 = new Texture("chao2.png");
 
 		font = new BitmapFont();
 		font.setColor(Color.WHITE);
 		font.getData().setScale(4);
 
-		mensagem = new BitmapFont();
-		mensagem.setColor(Color.WHITE);
-		mensagem.getData().setScale(2);
+		fontScore = new BitmapFont();
+		fontScore.setColor(Color.WHITE);
+		fontScore.getData().setScale(3);
+
+		fontBestScore = new BitmapFont();
+		fontBestScore.setColor(Color.WHITE);
+		fontBestScore.getData().setScale(3);
 
 		canoBaixo = new Texture("cano_baixo.png");
 		canoTopo = new Texture("cano_topo.png");
@@ -94,13 +107,22 @@ public class FlappyBird extends ApplicationAdapter {
 		alturaDoDispositivo = VIRTUAL_HEIGHT;
 		posicaoIncialVertical= alturaDoDispositivo/2;
 		posicaoMovimentoCanoHorizonatal = larguraDoDispositivo -100;
-		espacoCanos = 280;
+		espacoCanos = 270;
+		posicaoMovimentoChao = larguraDoDispositivo;
+
+		Preferences prefs = Gdx.app.getPreferences("My Preferences");
+		prefs.putInteger("score", 0);
+		prefs.flush();
+		melhorPontuacao = prefs.getInteger("score",score);
+
+
 
 
 	}
 
 	@Override
 	public void render () {
+
 		camera.update();
 		//limpar frames anteriores
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
@@ -124,7 +146,7 @@ public class FlappyBird extends ApplicationAdapter {
 			if (estadoDoJogo == 1) {
 
 				posicaoMovimentoCanoHorizonatal -= deltaTime * 200;
-
+				posicaoMovimentoChao -= deltaTime * 200;
 
 				if (Gdx.input.justTouched()) {
 					velocidadeQueda = -15;
@@ -141,15 +163,16 @@ public class FlappyBird extends ApplicationAdapter {
 				if (posicaoMovimentoCanoHorizonatal < 120) {
 					if (!marcouPonto) {
 						pontuacao++;
+						score = pontuacao;
 						marcouPonto = true;
 					}
 				}
-			}else{
-				if(Gdx.input.justTouched()){
-					estadoDoJogo=0;
-					pontuacao=0;
-					velocidadeQueda=0;
-					posicaoIncialVertical = alturaDoDispositivo/2;
+			} else {
+				if (Gdx.input.justTouched()) {
+					estadoDoJogo = 0;
+					pontuacao = 0;
+					velocidadeQueda = 0;
+					posicaoIncialVertical = alturaDoDispositivo / 2;
 					posicaoMovimentoCanoHorizonatal = larguraDoDispositivo;
 				}
 
@@ -161,15 +184,20 @@ public class FlappyBird extends ApplicationAdapter {
 
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
-		batch.draw(fundo,0,0,larguraDoDispositivo, alturaDoDispositivo);
-		batch.draw(canoTopo,posicaoMovimentoCanoHorizonatal,alturaDoDispositivo/2 + espacoCanos/2 + alturaEntreCanosRandomica);
-		batch.draw(canoBaixo,posicaoMovimentoCanoHorizonatal,alturaDoDispositivo/2 - canoBaixo.getHeight() - espacoCanos/2 + alturaEntreCanosRandomica);
-		batch.draw(passaros[(int)variacao], 120, posicaoIncialVertical);
-		font.draw(batch,String.valueOf(pontuacao),larguraDoDispositivo/2,alturaDoDispositivo -50);
+		batch.draw(fundo, 0, 0, larguraDoDispositivo, alturaDoDispositivo);
+		batch.draw(canoTopo, posicaoMovimentoCanoHorizonatal, alturaDoDispositivo / 2 + espacoCanos / 2 + alturaEntreCanosRandomica);
+		batch.draw(canoBaixo, posicaoMovimentoCanoHorizonatal, alturaDoDispositivo / 2 - canoBaixo.getHeight() - espacoCanos / 2 + alturaEntreCanosRandomica);
+		batch.draw(chao, larguraDoDispositivo, 0);
+		batch.draw(chao2, posicaoMovimentoChao, 0);
+		batch.draw(passaros[(int) variacao], 120, posicaoIncialVertical);
+		if (estadoDoJogo < 2){//sumir pontuação
+			font.draw(batch, String.valueOf(pontuacao), larguraDoDispositivo / 2, alturaDoDispositivo - 50);
 
-		if(estadoDoJogo==2){
+		}else{//tela do game over e score
 			batch.draw(gameOver,larguraDoDispositivo/4 - gameOver.getWidth()/7 ,alturaDoDispositivo/4);
 			batch.draw(playButton,larguraDoDispositivo/7,alturaDoDispositivo/4 - playButton.getHeight()/6);
+			fontScore.draw(batch,00 + String.valueOf(score),larguraDoDispositivo/2 + 10,alturaDoDispositivo/2 - gameOver.getHeight()/24);
+			fontBestScore.draw(batch,00 + String.valueOf(melhorPontuacao),larguraDoDispositivo/2 + 10,alturaDoDispositivo/2 - gameOver.getHeight()/6);
 		}
 
 
